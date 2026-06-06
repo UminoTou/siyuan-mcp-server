@@ -13,6 +13,9 @@ dist
 .DS_Store
 Thumbs.db
 
+# Claude
+.claude
+
 # Env
 .env
 .env.local
