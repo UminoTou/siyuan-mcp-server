@@ -1,7 +1,7 @@
 {
     "siyuan-mcp-server": {
         "args": [
-            "@fromsko/siyuan-mcp-server"
+            "@uminotou/siyuan-mcp-server"
         ],
         "command": "npx",
         "env": {

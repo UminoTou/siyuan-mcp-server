@@ -65,11 +65,11 @@ function getEnvironmentConfig() {
         // 仅在开发模式下输出警告
         if (process.env.NODE_ENV === 'development') {
             console.warn('Warning: SIYUAN_TOKEN environment variable not detected');
-            console.log('Please set the token using one of the following:');
-            console.log('  1. Environment variable: export SIYUAN_TOKEN=your_token');
-            console.log('  2. MCP config: set env.SIYUAN_TOKEN in client config');
-            console.log('  3. System environment: add to system environment variables');
-            console.log('Server will continue to start but may not access SiYuan API properly');
+            console.error('Please set the token using one of the following:');
+            console.error('  1. Environment variable: export SIYUAN_TOKEN=your_token');
+            console.error('  2. MCP config: set env.SIYUAN_TOKEN in client config');
+            console.error('  3. System environment: add to system environment variables');
+            console.error('Server will continue to start but may not access SiYuan API properly');
         }
         return null;
     }
@@ -81,10 +81,10 @@ function getEnvironmentConfig() {
 const siyuanToken = getEnvironmentConfig();
 
 if (siyuanToken && process.env.NODE_ENV === 'development') {
-    console.log('Environment variables check passed');
-    console.log('SIYUAN_TOKEN: ****' + siyuanToken.slice(-4));
+    console.error('Environment variables check passed');
+    console.error('SIYUAN_TOKEN: ****' + siyuanToken.slice(-4));
 } else if (process.env.NODE_ENV === 'development') {
-    console.log('Server will start in limited mode');
+    console.error('Server will start in limited mode');
 }
 
 // 启动服务器连接

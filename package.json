@@ -1,13 +1,13 @@
 {
 	"author": {
-		"email": "hnkong666@gmail.com",
-		"name": "Fromsko"
+		"email": "huopo@foxmail.com",
+		"name": "UminoTou"
 	},
 	"bin": {
 		"siyuan-mcp-server": "dist/index.js"
 	},
 	"bugs": {
-		"url": "https://github.com/fromsko/siyuan-mcp-server/issues"
+		"url": "https://github.com/UminoTou/siyuan-mcp-server/issues"
 	},
 	"dependencies": {
 		"@modelcontextprotocol/sdk": "^1.8.0",
@@ -47,7 +47,7 @@
 		"README.md",
 		"LICENSE"
 	],
-	"homepage": "https://github.com/fromsko/siyuan-mcp-server#readme",
+	"homepage": "https://github.com/UminoTou/siyuan-mcp-server#readme",
 	"keywords": [
 		"siyuan",
 		"siyuan-note",
@@ -58,7 +58,7 @@
 	"license": "ISC",
 	"main": "./dist/index.js",
 	"module": "./dist/index.js",
-	"name": "@fromsko/siyuan-mcp-server",
+	"name": "@uminotou/siyuan-mcp-server",
 	"packageManager": "pnpm@10.7.0",
 	"private": false,
 	"publishConfig": {
@@ -66,7 +66,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/fromsko/siyuan-mcp-server.git"
+		"url": "git+https://github.com/UminoTou/siyuan-mcp-server.git"
 	},
 	"scripts": {
 		"build": "tsc",

@@ -4,7 +4,7 @@
   
   **为 Claude Desktop 提供思源笔记集成的 Model Context Protocol 服务器**
   
-  [![npm version](https://img.shields.io/npm/v/@fromsko/siyuan-mcp-server.svg)](https://www.npmjs.com/package/@fromsko/siyuan-mcp-server)
+  [![npm version](https://img.shields.io/npm/v/@uminotou/siyuan-mcp-server.svg)](https://www.npmjs.com/package/@uminotou/siyuan-mcp-server)
   [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
   [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
   [![Node.js](https://img.shields.io/badge/Node.js-43853D?logo=node.js&logoColor=white)](https://nodejs.org/)
@@ -43,22 +43,22 @@
 
 ```bash
 # 使用 npm
-npm install -g @fromsko/siyuan-mcp-server
+npm install -g @uminotou/siyuan-mcp-server
 
 # 使用 pnpm
-pnpm add -g @fromsko/siyuan-mcp-server
+pnpm add -g @uminotou/siyuan-mcp-server
 ```
 
 #### 2. 直接使用（无需安装）
 
 ```bash
-npx @fromsko/siyuan-mcp-server
+npx @uminotou/siyuan-mcp-server
 ```
 
 #### 3. Docker 方式
 
 ```bash
-docker pull fromsko/siyuan-mcp-server
+docker pull UminoTou/siyuan-mcp-server
 ```
 
 ### ⚙️ 快速配置
@@ -79,7 +79,7 @@ docker pull fromsko/siyuan-mcp-server
 	"mcpServers": {
 		"siyuan": {
 			"command": "npx",
-			"args": ["-y", "@fromsko/siyuan-mcp-server"],
+			"args": ["-y", "@uminotou/siyuan-mcp-server"],
 			"env": {
 				"SIYUAN_TOKEN": "your-api-token"
 			}
@@ -100,12 +100,12 @@ docker pull fromsko/siyuan-mcp-server
 SIYUAN_TOKEN=your-token siyuan-mcp-server
 
 # 使用 npx（无需安装）
-SIYUAN_TOKEN=your-token npx @fromsko/siyuan-mcp-server
+SIYUAN_TOKEN=your-token npx @uminotou/siyuan-mcp-server
 
 # Docker 运行
 docker run --rm -i \
   -e SIYUAN_TOKEN=your-token \
-  fromsko/siyuan-mcp-server
+  UminoTou/siyuan-mcp-server
 ```
 
 ## 📚 功能与使用
@@ -189,7 +189,7 @@ docker run --rm -i \
 
 ```bash
 # 克隆项目
-git clone https://github.com/fromsko/siyuan-mcp-server.git
+git clone https://github.com/UminoTou/siyuan-mcp-server.git
 cd siyuan-mcp-server
 
 # 安装依赖
@@ -203,6 +203,29 @@ pnpm build
 
 # 运行测试
 pnpm test
+```
+
+### 项目结构
+
+```
+siyuan-mcp-server/
+├── dist/                  # 构建输出
+│   └── server.js          # 服务器入口
+├── src/                   # 源代码
+│   └── server.ts          # 主服务入口
+├── package.json
+└── README.md
+```
+
+### 启动验证
+
+成功启动后应看到类似输出：
+
+```
+🚀 启动思源笔记 MCP 服务器...
+✅ 环境变量检查通过
+🎉 MCP 服务器启动成功!
+📡 等待客户端连接...
 ```
 
 ### 技术栈与要求
@@ -260,7 +283,7 @@ docker run --rm -it \
 > 	"mcpServers": {
 > 		"siyuan": {
 > 			"command": "npx",
-> 			"args": ["-y", "@fromsko/siyuan-mcp-server"],
+> 			"args": ["-y", "@uminotou/siyuan-mcp-server"],
 > 			"env": {
 > 				"SIYUAN_TOKEN": "your-api-token",
 > 				"SIYUAN_API_URL": "http://your-server-ip:6806"
@@ -278,6 +301,12 @@ docker run --rm -it \
 > - 重启 Claude Desktop 应用
 > - 查看 Claude Desktop 日志获取详细错误信息
 > - 确认 npx 命令可以正常执行
+
+**❓ macOS / Linux 提示权限不足**
+
+> ```bash
+> chmod +x dist/server.js
+> ```
 
 **❓ 命令执行失败或返回错误**
 
@@ -324,7 +353,7 @@ DEBUG=siyuan-mcp:* SIYUAN_TOKEN=your-token siyuan-mcp-server
 
 发现 Bug 或有改进建议？请通过以下方式报告：
 
-- [GitHub Issues](https://github.com/fromsko/siyuan-mcp-server/issues)
+- [GitHub Issues](https://github.com/UminoTou/siyuan-mcp-server/issues)
 - 详细描述问题的复现步骤
 - 提供相关的错误日志和环境信息
 
@@ -339,13 +368,13 @@ DEBUG=siyuan-mcp:* SIYUAN_TOKEN=your-token siyuan-mcp-server
 - 📚 [思源笔记官网](https://b3log.org/siyuan/)
 - 🔗 [Model Context Protocol](https://modelcontextprotocol.io/)
 - 🤖 [Claude Desktop](https://claude.ai/download)
-- 📦 [npm 包页面](https://www.npmjs.com/package/@fromsko/siyuan-mcp-server)
+- 📦 [npm 包页面](https://www.npmjs.com/package/@uminotou/siyuan-mcp-server)
 
 ### 社区与支持
 
 - 💬 [思源笔记社区](https://ld246.com/domain/siyuan)
-- 🐙 [项目 GitHub](https://github.com/fromsko/siyuan-mcp-server)
-- 📧 [问题反馈](mailto:hnkong666@gmail.com)
+- 🐙 [项目 GitHub](https://github.com/UminoTou/siyuan-mcp-server)
+- 📧 [问题反馈](mailto:huopo@foxmail.com)
 
 ## ❤️ 特别感谢
 

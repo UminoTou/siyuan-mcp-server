@@ -32,9 +32,9 @@ class SiYuanClient {
 
         if (!token) {
             console.warn('⚠️  警告：未设置 SIYUAN_TOKEN 环境变量，API 调用可能会失败');
-            console.log('💡 请设置以下环境变量之一：SIYUAN_TOKEN、SIYUAN_API_TOKEN、SIYUAN_AUTH_TOKEN');
+            console.error('💡 请设置以下环境变量之一：SIYUAN_TOKEN、SIYUAN_API_TOKEN、SIYUAN_AUTH_TOKEN');
         } else {
-            console.log('🔗 已连接到思源笔记 API:', baseURL);
+            console.error('🔗 已连接到思源笔记 API:', baseURL);
         }
 
         this.axiosInstance = axios.create({
@@ -85,7 +85,7 @@ class SiYuanClient {
     }
 
     private getBaseURL(): string {
-        return process.env.SIYUAN_API_URL || "http://localhost:6806";
+        return process.env.SIYUAN_API_URL || "http://127.0.0.1:6806";
     }
 
     private getToken(): string {
