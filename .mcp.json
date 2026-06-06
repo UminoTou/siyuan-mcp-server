@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "siyuan": {
+      "command": "npx",
+      "args": ["-y", "@uminotou/siyuan-mcp-server"],
+      "env": {
+        "SIYUAN_TOKEN": "your-api-token-here"
+      }
+    }
+  }
+}

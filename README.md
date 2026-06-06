@@ -2,7 +2,7 @@
   
   # 🧠 思源笔记 MCP 服务器
   
-  **为 Claude Desktop 提供思源笔记集成的 Model Context Protocol 服务器**
+  **为 Claude Code / Claude Desktop 提供思源笔记集成的 Model Context Protocol 服务器**
   
   [![npm version](https://img.shields.io/npm/v/@uminotou/siyuan-mcp-server.svg)](https://www.npmjs.com/package/@uminotou/siyuan-mcp-server)
   [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
@@ -17,7 +17,7 @@
 
 ## 📖 项目介绍
 
-**思源笔记 MCP 服务器** 是一个专为 [思源笔记](https://b3log.org/siyuan/) 设计的 Model Context Protocol 服务器实现。通过此服务器，您可以在 Claude Desktop 等支持 MCP 的 AI 客户端中直接操作思源笔记，实现笔记管理、内容搜索、文档编辑等功能的无缝集成。
+**思源笔记 MCP 服务器** 是一个专为 [思源笔记](https://b3log.org/siyuan/) 设计的 Model Context Protocol 服务器实现。通过此服务器，您可以在 Claude Desktop 或 Claude Code 等支持 MCP 的 AI 客户端中直接操作思源笔记，实现笔记管理、内容搜索、文档编辑等功能的无缝集成。
 
 ### ✨ 主要特性
 
@@ -34,7 +34,7 @@
 
 - **Node.js** >= 18.0.0
 - **思源笔记** 正在运行且已开启 API 服务
-- **Claude Desktop** 或其他支持 MCP 的客户端
+- **Claude Code** / **Claude Desktop** 或其他支持 MCP 的客户端
 - 思源笔记 API Token（设置 → 关于 → API token）
 
 ### 📥 安装方式
@@ -70,21 +70,51 @@ docker pull UminoTou/siyuan-mcp-server
 | `SIYUAN_TOKEN`   | ✅   | 思源笔记 API 令牌，用于身份验证           |
 | `SIYUAN_API_URL` | ❌   | 思源笔记 API 地址，默认为 http://localhost:6806，可用于连接远程思源笔记服务 |
 
+#### 在 Claude Code 中配置
+
+**第一步：** 在你的项目根目录创建 `.mcp.json` 文件：
+
+```json
+{
+  "mcpServers": {
+    "siyuan": {
+      "command": "npx",
+      "args": ["-y", "@uminotou/siyuan-mcp-server"],
+      "env": {
+        "SIYUAN_TOKEN": "your-api-token"
+      }
+    }
+  }
+}
+```
+
+**第二步：** 在项目 `.claude/settings.local.json` 中启用该 MCP 服务器：
+
+```json
+{
+  "enabledMcpjsonServers": ["siyuan"]
+}
+```
+
+**第三步：** 重启 Claude Code，在对话中输入 `/mcp` 验证是否出现 `siyuan` 服务器。
+
+> 如果需要在所有项目中使用，将 `.mcp.json` 放到用户目录 `~/.mcp.json`，并在 `~/.claude/settings.json` 中添加 `enabledMcpjsonServers`。
+
 #### 在 Claude Desktop 中配置
 
 在 Claude Desktop 配置文件中添加以下内容：
 
 ```json
 {
-	"mcpServers": {
-		"siyuan": {
-			"command": "npx",
-			"args": ["-y", "@uminotou/siyuan-mcp-server"],
-			"env": {
-				"SIYUAN_TOKEN": "your-api-token"
-			}
-		}
-	}
+  "mcpServers": {
+    "siyuan": {
+      "command": "npx",
+      "args": ["-y", "@uminotou/siyuan-mcp-server"],
+      "env": {
+        "SIYUAN_TOKEN": "your-api-token"
+      }
+    }
+  }
 }
 ```
 
