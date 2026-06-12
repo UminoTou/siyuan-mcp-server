@@ -1,7 +1,6 @@
 import { z } from 'zod';
-import { createHandler } from '../../utils/client.js';
-import { registry } from '../../utils/registry.js';
-import { CommandHandler } from '../../utils/registry.js';
+import { createHandler, client } from '../../utils/client.js';
+import { registry, CommandHandler, McpResponse } from '../../utils/registry.js';
 
 const namespace = 'filetree';
 
@@ -152,6 +151,121 @@ const removeDocHandler: CommandHandler = {
     }
 };
 
+// Remove document recursively (including all sub-documents)
+const removeDocRecursiveHandler: CommandHandler = {
+    namespace,
+    name: 'removeDocRecursive',
+    description: 'Recursively remove a document and all its sub-documents',
+    params: z.object({
+        notebook: z.string().describe('Notebook ID'),
+        path: z.string().describe('Document path (e.g., /parent/doc)')
+    }),
+    handler: async (params): Promise<McpResponse> => {
+        try {
+            const { notebook, path } = params as { notebook: string; path: string };
+
+            // Step 1: Locate the target document by hpath to get its internal .sy path
+            const safePath = path.replace(/'/g, "''");
+            const safeNotebook = notebook.replace(/'/g, "''");
+            const findDocSql = `SELECT id, path, content FROM blocks WHERE box = '${safeNotebook}' AND type = 'd' AND hpath = '${safePath}' LIMIT 1`;
+            const findDocResult = await client.post('/api/query/sql', { stmt: findDocSql });
+
+            if (findDocResult.code !== 0 || !findDocResult.data || findDocResult.data.length === 0) {
+                return {
+                    content: [{ type: 'text', text: JSON.stringify({ code: 404, msg: 'Document not found', data: null }) }]
+                };
+            }
+
+            const rootDoc = findDocResult.data[0];
+            const rootFilePath = rootDoc.path.replace(/\.sy$/, '');
+
+            // Step 2: Fetch the entire subtree (including self) ordered by depth descending
+            const childrenSql = `SELECT id, content FROM blocks WHERE box = '${safeNotebook}' AND type = 'd' AND (path = '${rootDoc.path}' OR path LIKE '${rootFilePath}/%') ORDER BY LENGTH(path) DESC`;
+            const childrenResult = await client.post('/api/query/sql', { stmt: childrenSql });
+
+            if (childrenResult.code !== 0) {
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(childrenResult) }],
+                    isError: true
+                };
+            }
+
+            const docs = childrenResult.data || [];
+            const deleted: string[] = [];
+            const failed: string[] = [];
+
+            // Step 3: Delete from deepest to shallowest via removeDocByID
+            for (const doc of docs) {
+                try {
+                    const deleteResult = await client.post('/api/filetree/removeDocByID', { id: doc.id });
+                    if (deleteResult.code === 0) {
+                        deleted.push(doc.content);
+                    } else {
+                        failed.push(`${doc.content}: ${deleteResult.msg}`);
+                    }
+                } catch (e: any) {
+                    failed.push(`${doc.content}: ${e.message}`);
+                }
+            }
+
+            const result = {
+                code: 0,
+                msg: `Deleted ${deleted.length} documents${failed.length > 0 ? `, ${failed.length} failed` : ''}`,
+                data: { total: docs.length, deleted, failed: failed.length > 0 ? failed : undefined }
+            };
+
+            return {
+                content: [{ type: 'text', text: JSON.stringify(result) }],
+                _meta: result
+            };
+        } catch (error: any) {
+            return {
+                content: [{ type: 'text', text: JSON.stringify({ code: 1, msg: error.message }) }],
+                isError: true
+            };
+        }
+    },
+    documentation: {
+        description: 'Recursively remove a document and all its sub-documents by querying the document tree and deleting from the deepest level upward.',
+        params: {
+            notebook: {
+                type: 'string',
+                description: 'Notebook ID',
+                required: true
+            },
+            path: {
+                type: 'string',
+                description: 'Document path (human-readable, e.g., "/parent/doc")',
+                required: true
+            }
+        },
+        returns: {
+            type: 'object',
+            description: 'Operation result with deleted count',
+            properties: {
+                total: 'Total documents found',
+                deleted: 'Names of successfully deleted documents',
+                failed: 'List of deletion failures (if any)'
+            }
+        },
+        examples: [
+            {
+                description: 'This example demonstrates recursively deleting a document and all its sub-documents, removing the entire tree from the notebook.',
+                params: {
+                    notebook: "20210817205410-2kvfpfn",
+                    path: "/test/parent-doc"
+                },
+                response: {
+                    code: 0,
+                    msg: "Deleted 3 documents",
+                    data: { total: 3, deleted: ["parent-doc", "child-1", "child-2"] }
+                }
+            }
+        ],
+        apiLink: 'https://github.com/siyuan-note/siyuan/blob/master/API.md#remove-a-document'
+    }
+};
+
 // Move documents
 const moveDocsHandler: CommandHandler = {
     namespace,
@@ -294,6 +408,7 @@ export function registerFiletreeHandlers() {
     registry.registerCommand(createDocWithMdHandler);
     registry.registerCommand(renameDocHandler);
     registry.registerCommand(removeDocHandler);
+    registry.registerCommand(removeDocRecursiveHandler);
     registry.registerCommand(moveDocsHandler);
     registry.registerCommand(getHPathByPathHandler);
     registry.registerCommand(getHPathByIDHandler);
