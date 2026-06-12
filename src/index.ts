@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import pkg from '../package.json' with { type: 'json' };
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { registerCommandTool } from './tools/commands.js';
@@ -35,7 +36,7 @@ export class SiyuanMcpServer {
     }) {
         this.server = new McpServer({
             name: options?.name || "siyuan-mcp-server",
-            version: options?.version || "1.2.3",
+            version: options?.version || pkg.version,
         });
 
         this.transport = new StdioServerTransport();
@@ -137,7 +138,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 
     console.error('🚀 启动思源笔记 MCP 服务器...');
     console.error('📝 服务器名称: siyuan-mcp-server');
-    console.error('🔢 版本: 1.2.5');
+    console.error(`🔢 版本: ${pkg.version}`);
     console.error('🔗 传输协议: stdio');
     console.error('🛠️  服务器已就绪，可提供思源笔记相关工具');
 

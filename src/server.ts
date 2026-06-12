@@ -20,10 +20,12 @@ import { registerTemplateHandlers } from './tools/commands/template.js';
 import { registerHelpTool } from './tools/help.js';
 import { registerQueryTool } from './tools/queries.js';
 
+import pkg from '../package.json' with { type: 'json' };
+
 // 创建 MCP 服务器实例
 const server = new McpServer({
     name: "siyuan-mcp-server",
-    version: "1.0.0",
+    version: pkg.version,
 });
 
 // 创建传输层实例
