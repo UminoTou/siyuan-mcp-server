@@ -10,11 +10,12 @@ export interface SiYuanResponse<T = any> {
 export function createHandler(endpoint: string): (params: unknown) => Promise<any> {
     return async (params: unknown) => {
         const response = await client.post(endpoint, params);
+        const data = response?.data ?? response ?? {};
         return {
             content: [
                 {
                     type: 'text',
-                    text: JSON.stringify(response.data)
+                    text: JSON.stringify(data)
                 }
             ]
         };

@@ -1,9 +1,38 @@
 import { z } from 'zod';
-import { createHandler } from '../../utils/client.js';
+import { client } from '../../utils/client.js';
 import { registry } from '../../utils/registry.js';
-import { CommandHandler } from '../../utils/registry.js';
+import { CommandHandler, McpResponse } from '../../utils/registry.js';
 
 const namespace = 'search';
+
+// 非文本块类型，这些块在搜索结果中会导致 MCP 序列化失败
+const NON_TEXT_TYPES = new Set([
+    'img', 'image', 'audio', 'video', 'widget', 'iframe'
+]);
+
+// 用户传入的 types 短名 → 思源 API 的 types 对象 key 映射
+const TYPES_MAP: Record<string, string> = {
+    'doc': 'document',
+    'heading': 'heading',
+    'paragraph': 'paragraph',
+    'list': 'list',
+    'listItem': 'listItem',
+    'code': 'codeBlock',
+    'codeBlock': 'codeBlock',
+    'html': 'htmlBlock',
+    'htmlBlock': 'htmlBlock',
+    'math': 'mathBlock',
+    'mathBlock': 'mathBlock',
+    'table': 'table',
+    'quote': 'blockquote',
+    'blockquote': 'blockquote',
+    'super': 'superBlock',
+    'superBlock': 'superBlock',
+    'embed': 'embedBlock',
+    'embedBlock': 'embedBlock',
+    'database': 'databaseBlock',
+    'databaseBlock': 'databaseBlock',
+};
 
 // Full text search
 const fullTextSearchHandler: CommandHandler = {
@@ -20,7 +49,66 @@ const fullTextSearchHandler: CommandHandler = {
         page: z.number().optional().describe('Page number'),
         limit: z.number().optional().describe('Results per page')
     }),
-    handler: createHandler('/api/search/fullTextSearch'),
+    handler: async (rawParams): Promise<McpResponse> => {
+        const params = rawParams as {
+            query: string;
+            method?: number;
+            types?: string[];
+            paths?: string[];
+            groupBy?: number;
+            orderBy?: number;
+            page?: number;
+            limit?: number;
+        };
+        try {
+            // 转换参数格式以匹配思源 API
+            const apiParams: Record<string, unknown> = {
+                query: params.query,
+                method: params.method ?? 0,
+                page: params.page ?? 1,
+                pageSize: params.limit ?? 32,
+            };
+            if (params.paths) apiParams.paths = params.paths;
+            if (params.groupBy !== undefined) apiParams.groupBy = params.groupBy;
+            if (params.orderBy !== undefined) apiParams.orderBy = params.orderBy;
+            if (params.types?.length) {
+                apiParams.types = {};
+                for (const t of params.types) {
+                    const key = TYPES_MAP[t] || t;
+                    (apiParams.types as Record<string, boolean>)[key] = true;
+                }
+            }
+
+            const response = await client.post('/api/search/fullTextSearchBlock', apiParams);
+            const data = response?.data;
+
+            if (data && Array.isArray(data.blocks)) {
+                const originalCount = data.blocks.length;
+                data.blocks = data.blocks.filter(
+                    (block: any) => block.type && !NON_TEXT_TYPES.has(block.type)
+                );
+                data.filteredCount = originalCount - data.blocks.length;
+            }
+
+            return {
+                content: [{
+                    type: 'text',
+                    text: JSON.stringify(data ?? response ?? {})
+                }]
+            };
+        } catch (error: any) {
+            return {
+                content: [{
+                    type: 'text',
+                    text: JSON.stringify({
+                        code: 1,
+                        msg: error.message || 'Search failed'
+                    })
+                }],
+                isError: true
+            };
+        }
+    },
     documentation: {
         description: 'Full text search',
         params: {
@@ -99,7 +187,7 @@ const fullTextSearchHandler: CommandHandler = {
                 }
             }
         ],
-        apiLink: 'https://github.com/siyuan-note/siyuan/blob/master/API.md#full-text-search'
+        apiLink: 'https://deepwiki.com/siyuan-note/siyuan/8.1-full-text-search'
     }
 };
 
