@@ -114,21 +114,72 @@ const removeDocHandler: CommandHandler = {
     name: 'removeDoc',
     description: 'Remove a document',
     params: z.object({
-        notebook: z.string().describe('Notebook ID'),
-        path: z.string().describe('Document path')
+        notebook: z.string().describe('Notebook ID (e.g. "20210817205410-2kvfpfn"). Get from notebook.lsNotebooks, NOT from .sy path segments'),
+        path: z.string().describe('Document path: hpath like "/folder/doc" or .sy path like "/20210902210113-0avi12f.sy"')
     }),
-    handler: createHandler('/api/filetree/removeDoc'),
+    handler: async (params): Promise<McpResponse> => {
+        try {
+            const { notebook, path } = params as { notebook: string; path: string };
+
+            // If path doesn't end with .sy, treat it as hpath and convert to .sy path
+            let syPath = path;
+            if (!path.endsWith('.sy')) {
+                const safePath = path.replace(/'/g, "''");
+                const safeNotebook = notebook.replace(/'/g, "''");
+
+                // Try with the specified notebook first
+                let findSql = `SELECT path FROM blocks WHERE box = '${safeNotebook}' AND type = 'd' AND hpath = '${safePath}' LIMIT 1`;
+                let findResult = await client.post('/api/query/sql', { stmt: findSql });
+
+                // If not found, search across ALL notebooks to help user find the correct notebook ID
+                if (findResult.code !== 0 || !findResult.data || findResult.data.length === 0) {
+                    const globalSql = `SELECT box, path, hpath FROM blocks WHERE type = 'd' AND hpath = '${safePath}' LIMIT 5`;
+                    const globalResult = await client.post('/api/query/sql', { stmt: globalSql });
+
+                    if (globalResult.code === 0 && globalResult.data && globalResult.data.length > 0) {
+                        const found = globalResult.data[0];
+                        return {
+                            content: [{
+                                type: 'text',
+                                text: JSON.stringify({
+                                    code: 404,
+                                    msg: `Document not found in notebook "${notebook}", but found in notebook "${found.box}". Use notebook="${found.box}" instead.`,
+                                    data: { correctNotebook: found.box, path: found.path }
+                                })
+                            }]
+                        };
+                    }
+
+                    return {
+                        content: [{ type: 'text', text: JSON.stringify({ code: 404, msg: 'Document not found', data: null }) }]
+                    };
+                }
+                syPath = findResult.data[0].path;
+            }
+
+            const result = await client.post('/api/filetree/removeDoc', { notebook, path: syPath });
+            return {
+                content: [{ type: 'text', text: JSON.stringify(result) }],
+                _meta: result
+            };
+        } catch (error: any) {
+            return {
+                content: [{ type: 'text', text: JSON.stringify({ code: 1, msg: error.message }) }],
+                isError: true
+            };
+        }
+    },
     documentation: {
-        description: 'Remove a document',
+        description: 'Remove a document. Accepts either hpath (e.g., "/folder/doc") or .sy path (e.g., "/20210902210113-0avi12f.sy").',
         params: {
             notebook: {
                 type: 'string',
-                description: 'Notebook ID',
+                description: 'Notebook ID (from notebook.lsNotebooks, e.g. "20210817205410-2kvfpfn"). Do NOT use timestamps from .sy paths.',
                 required: true
             },
             path: {
                 type: 'string',
-                description: 'Document path',
+                description: 'Document path (hpath or .sy path)',
                 required: true
             }
         },
@@ -139,10 +190,18 @@ const removeDocHandler: CommandHandler = {
         },
         examples: [
             {
-                description: 'This example demonstrates deleting a document from a specific notebook, removing it from the file tree structure.',
+                description: 'Delete using hpath (human-readable path)',
                 params: {
                     notebook: "20210817205410-2kvfpfn",
-                    path: "/test/doc.md"
+                    path: "/test/doc"
+                },
+                response: {}
+            },
+            {
+                description: 'Delete using .sy path',
+                params: {
+                    notebook: "20210817205410-2kvfpfn",
+                    path: "/20210902210113-0avi12f.sy"
                 },
                 response: {}
             }
